@@ -5,8 +5,10 @@ import type { BrainVersion, CanonicalFact, Observation, UpdateEvent } from './ty
 
 const SECTION = (fk: string) => fk.split('.')[0];
 
+type CanonicalFactRow = Omit<CanonicalFact, 'operator_locked'> & { operator_locked: number };
+
 async function loadCurrent(merchantId: string): Promise<Map<string, CanonicalFact>> {
-  const rows = await query<CanonicalFact & { operator_locked: number }>(
+  const rows = await query<CanonicalFactRow>(
     `SELECT * FROM canonical_facts FINAL WHERE merchant_id='${merchantId}'`);
   return new Map(rows.map((r) => [r.fact_key, { ...r, operator_locked: !!r.operator_locked } as CanonicalFact]));
 }

@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { insertRows, query } from './clickhouse';
 import type { CanonicalFact, OperatorDecision } from './types';
 
+type CanonicalFactRow = Omit<CanonicalFact, 'operator_locked'> & { operator_locked: number };
+
 /** Operator confirms the winning value for a conflicted fact and locks it. */
 export async function resolveAndLock(merchantId: string, factKey: string, chosenValue: string, rationale: string, nowIso: string): Promise<void> {
   const decision: OperatorDecision = {
@@ -10,7 +12,7 @@ export async function resolveAndLock(merchantId: string, factKey: string, chosen
   };
   await insertRows('operator_decisions', [{ ...decision, locked: 1 }]);
 
-  const [cur] = await query<CanonicalFact & { operator_locked: number }>(
+  const [cur] = await query<CanonicalFactRow>(
     `SELECT * FROM canonical_facts FINAL WHERE merchant_id='${merchantId}' AND fact_key='${factKey}' LIMIT 1`);
   const locked: CanonicalFact = {
     ...(cur as unknown as CanonicalFact),
