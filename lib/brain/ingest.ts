@@ -21,8 +21,8 @@ export async function ingest(merchantId: string, env: IngestEnvelope, nowIso: st
     merchant_id: merchantId, source_id, source_type: env.source.source_type, source_name: env.source.source_name,
     source_uri: env.source.source_uri ?? '', artifact_hash, source_reliability: env.source.source_reliability,
     observed_at: nowIso, ingested_at: nowIso, created_by: 'agent',
-    privacy_class: env.source.privacy_class, produced_by_workflow: env.source.produced_by_workflow ?? null,
-    derived_from_brain_version_id: env.source.derived_from_brain_version_id ?? null,
+    privacy_class: env.source.privacy_class, produced_by_workflow: env.source.produced_by_workflow ?? '',
+    derived_from_brain_version_id: env.source.derived_from_brain_version_id ?? '',
     freshness_policy: env.source.source_type === 'web_research' ? '30d' : env.source.source_type.includes('snapshot') ? '7d' : 'never',
     status: 'processed',
   };

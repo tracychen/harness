@@ -43,7 +43,7 @@ export async function synthesizeRun(merchantId: string, trigger: BrainVersion['t
     }
   }
 
-  await insertRows<BrainVersion>('brain_versions', [{ brain_version_id, merchant_id: merchantId, parent_version_id: null, trigger, created_at: nowIso }]);
+  await insertRows<BrainVersion>('brain_versions', [{ brain_version_id, merchant_id: merchantId, parent_version_id: '', trigger, created_at: nowIso }]);
   await insertRows('canonical_facts', facts.map((f) => ({ ...f, operator_locked: f.operator_locked ? 1 : 0 })));
   if (events.length) await insertRows('update_events', events.map((e) => ({ ...e, from_derived: e.from_derived ? 1 : 0 })));
   return { brain_version_id, changedKeys };
