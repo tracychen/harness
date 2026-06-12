@@ -1,0 +1,41 @@
+envVarGroups:
+  - name: brain-secrets
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLICKHOUSE_URL
+        sync: false
+      - key: CLICKHOUSE_USER
+        sync: false
+      - key: CLICKHOUSE_PASSWORD
+        sync: false
+      - key: SENSO_API_KEY
+        sync: false
+      - key: SENSO_GEO_QUESTION_ID
+        sync: false
+      - key: COMPOSIO_API_KEY
+        sync: false
+      - key: COMPOSIO_NOTION_USER_ID
+        sync: false
+      - key: NOTION_PARENT_PAGE_ID
+        sync: false
+services:
+  - type: web
+    name: merchant-brain
+    runtime: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - fromGroup: brain-secrets
+      - key: NODE_VERSION
+        value: "22"
+  - type: cron
+    name: merchant-brain-daily
+    runtime: node
+    plan: starter
+    schedule: "0 9 * * *"
+    buildCommand: npm install
+    startCommand: npm run agent:daily -- --merchant gearit
+    envVars:
+      - fromGroup: brain-secrets
