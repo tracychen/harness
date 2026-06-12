@@ -19,6 +19,8 @@ envVarGroups:
         sync: false
       - key: NOTION_PARENT_PAGE_ID
         sync: false
+      - key: NOTION_AUTH_CONFIG_ID
+        sync: false
 services:
   - type: web
     name: merchant-brain
@@ -30,6 +32,8 @@ services:
       - fromGroup: brain-secrets
       - key: NODE_VERSION
         value: "22"
+      - key: USE_CACHED_RESEARCH
+        value: "1"
   - type: cron
     name: merchant-brain-daily
     runtime: node
@@ -39,3 +43,7 @@ services:
     startCommand: npm run agent:daily -- --merchant gearit
     envVars:
       - fromGroup: brain-secrets
+      - key: NODE_VERSION
+        value: "22"
+      - key: USE_CACHED_RESEARCH
+        value: "1"
