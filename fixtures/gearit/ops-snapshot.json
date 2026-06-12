@@ -1,0 +1,7 @@
+{
+  "source": { "source_type": "shopify_snapshot", "source_name": "GEARit Shopify admin snapshot (operational)", "privacy_class": "internal_only", "source_reliability": 0.9 },
+  "observations": [
+    { "fact_key": "catalog.source_of_truth", "claim": "Shopify admin is the authoritative catalog; the Google Merchant Center feed and Amazon listings are derived, read-only mirrors", "structured_value": {"system":"shopify_admin","derived":["google_merchant_center","amazon"]}, "evidence_ref": "shopify:admin/products", "directness": "direct", "confidence": 0.92 },
+    { "fact_key": "schema.platform_constraints", "claim": "GMC feed requires a GTIN per variant and refreshes every 30 days; product titles are capped at 150 chars", "structured_value": {"gmc":{"requires_gtin":true,"feed_refresh":"30d","title_max":150},"shopify":{"max_variants_per_product":100}}, "evidence_ref": "shopify:settings/feeds", "directness": "direct", "confidence": 0.85 }
+  ]
+}

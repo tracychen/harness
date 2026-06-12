@@ -1,0 +1,9 @@
+{
+  "source": { "source_type": "workflow_artifact", "source_name": "AEO gap-analysis artifact (reviews + SERP scan)", "privacy_class": "public_demo_safe", "produced_by_workflow": "aeo_gap_analysis", "source_reliability": 0.65 },
+  "observations": [
+    { "fact_key": "buyer_language.common_objections", "claim": "Buyers repeatedly question copper purity (CCA vs pure copper), outdoor/direct-burial durability, and whether the stated cable length is accurate", "structured_value": ["Is it pure bare copper or copper-clad aluminum (CCA)?","Will it survive outdoor or direct-burial use?","Is the listed length accurate?"], "evidence_ref": "reviews:amazon:gearit-cat6", "directness": "inferred", "confidence": 0.75 },
+    { "fact_key": "query.target_gaps", "claim": "High-intent buyer queries where GEARit has a weak or missing answer today", "structured_value": ["is gearit cat6 pure bare copper","best outdoor direct-burial cat6 cable","flat vs round cat6 for under-carpet runs"], "evidence_ref": "aeo:gap-scan", "directness": "derived", "confidence": 0.7 },
+    { "fact_key": "citation.cited_domains", "claim": "Domains that currently rank or get cited for GEARit's core buyer queries", "structured_value": ["amazon.com","reddit.com/r/HomeNetworking","gearit.com","servethehome.com"], "evidence_ref": "serp:scan", "directness": "direct", "confidence": 0.8 },
+    { "fact_key": "blog.proprietary_claim_candidates", "claim": "GEARit Cat6 uses pure bare copper conductors (not CCA) — a defensible, citable differentiator", "structured_value": ["pure bare copper conductors, not CCA"], "evidence_ref": "aeo:claims", "directness": "derived", "confidence": 0.72 }
+  ]
+}

@@ -13,7 +13,7 @@ function loadFixture(name: string) {
 export async function runBrain(merchantId: string, domain: string, nowIso: string) {
   const research = await researchMerchant(domain);
   await ingest(merchantId, { source: { source_type: 'web_research', source_name: research.source_name, privacy_class: 'public_demo_safe', source_reliability: 0.7 }, observations: research.observations }, nowIso);
-  for (const fx of ['onboarding', 'gmc-snapshot', 'operator-decision']) {
+  for (const fx of ['onboarding', 'gmc-snapshot', 'operator-decision', 'ops-snapshot', 'aeo-analysis']) {
     await ingest(merchantId, loadFixture(fx), nowIso);
   }
   return synthesizeRun(merchantId, 'ingest', nowIso);

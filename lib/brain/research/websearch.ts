@@ -23,10 +23,13 @@ export async function researchMerchant(domain: string): Promise<ResearchResult> 
       role: 'user',
       content:
         `Research the merchant at ${domain}. Find: hero/bestselling products (with stock signals), ` +
-        `buyer topic candidates for blog content, and the brand's primary market. ` +
+        `buyer topic candidates for blog content, the brand's primary market, ` +
+        `common buyer objections (mine product reviews and forums), the domains that currently rank or get cited for the brand's buyer queries, ` +
+        `and high-intent buyer queries the brand answers weakly today. ` +
         `Return ONLY a JSON array of observations: ` +
         `[{"fact_key","claim","structured_value","evidence_ref"(URL),"directness","confidence"}]. ` +
-        `Use fact_keys like identity.display_name, catalog.products.<sku>.sellable_status, blog.topic_candidates, markets.primary_country.`,
+        `Use fact_keys like identity.display_name, catalog.products.<sku>.sellable_status, blog.topic_candidates, markets.primary_country, ` +
+        `buyer_language.common_objections, citation.cited_domains, query.target_gaps.`,
     }],
   });
   const text = res.content.filter((b) => b.type === 'text').map((b) => (b as { text: string }).text).join('\n');
