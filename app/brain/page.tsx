@@ -123,11 +123,9 @@ export default function BrainPage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-6xl px-6 py-9">
         <header className="border-b border-border pb-6">
-          <div className="flex items-center gap-4">
-            <Image src="/brainbox.png" alt="Brainbox" width={5632} height={2816} priority className="h-20 w-auto" />
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              <span className="inline-block h-2 w-2 bg-primary" /> Harness Engineering Hack Demo
-            </div>
+          <Image src="/brainbox.png" alt="Brainbox" width={5632} height={2816} priority className="h-20 w-auto" />
+          <div className="mt-3 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            <span className="inline-block h-2 w-2 bg-primary" /> Harness Engineering Hack Demo
           </div>
           <h1 className="mt-3 text-3xl font-bold tracking-tight">The GEARit Brainbox</h1>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
