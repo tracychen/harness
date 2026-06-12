@@ -31,4 +31,31 @@ describe('bundle', () => {
     expect(pub.facts.every((f) => f.min_privacy === 'public_demo_safe')).toBe(true);
     expect(pub.facts.some((f) => f.fact_key.includes('cat6_flat'))).toBe(false);
   });
+
+  it('publishSafe never leaks internal fact_keys, blocked-topic reasons, or conflicts', () => {
+    const b = composeBlogBundle([
+      fact('identity.display_name', 'GEARit', 'public_demo_safe'),
+      fact('catalog.products.cat6_flat.sellable_status', { status: 'excluded' }, 'internal_only', { freshness_status: 'conflicted' }),
+      fact('catalog.products.secret_sku.sellable_status', { status: 'excluded' }, 'internal_only', { freshness_status: 'stale' }),
+      fact('internal.margin_notes', 'do-not-publish', 'internal_only', { freshness_status: 'missing' }),
+      fact('blog.topic_candidates', [
+        { topic: 'best flat Cat6 ethernet cables', product: 'cat6_flat' },
+        { topic: 'Cat6 outdoor direct-burial guide', product: 'cat6_outdoor' },
+      ]),
+    ]);
+    const pub = publishSafe(b);
+    // No internal key/value token appears anywhere in the serialized public payload.
+    const blob = JSON.stringify(pub);
+    for (const leak of ['cat6_flat', 'secret_sku', 'margin_notes', 'do-not-publish', 'excluded']) {
+      expect(blob).not.toContain(leak);
+    }
+    // Blocked topics are dropped entirely; survivors carry a neutral reason.
+    expect(pub.topic_candidates.every((t) => t.blocked === false && t.reason === 'eligible')).toBe(true);
+    expect(pub.topic_candidates.some((t) => t.topic.includes('flat Cat6'))).toBe(false);
+    // Internal channels are emptied / key-filtered.
+    expect(pub.conflicts).toEqual([]);
+    expect(pub.locked_decisions).toEqual([]);
+    expect(pub.gaps).toEqual([]);
+    expect(pub.freshness_warnings).toEqual([]);
+  });
 });

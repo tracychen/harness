@@ -36,11 +36,26 @@ export function composeBlogBundle(facts: CanonicalFact[]): BundlePayload {
   };
 }
 
+// Publish-safe subset: the ONLY fields safe to emit publicly (cited.md). Every
+// privacy-sensitive field is filtered, not just `facts` — internal fact_keys and
+// the reason a topic was blocked (e.g. "product cat6_flat is excluded") must never leak.
 export function publishSafe(payload: BundlePayload): BundlePayload {
+  // Curated `topic_candidates` supersedes the raw `blog.topic_candidates` aggregate,
+  // which can name a product we curated out — never re-publish that raw fact.
+  const publicFacts = payload.facts.filter(
+    (f) => isDemoSafe(f.min_privacy) && f.fact_key !== 'blog.topic_candidates',
+  );
+  const publicFactKeys = new Set(publicFacts.map((f) => f.fact_key));
   return {
     ...payload,
-    facts: payload.facts.filter((f) => isDemoSafe(f.min_privacy)),
+    facts: publicFacts,
     locked_decisions: [], // internal by nature — never publish
-    conflicts: [],
+    conflicts: [], // a conflict reveals an internal/external disagreement — never publish
+    gaps: payload.gaps.filter((k) => publicFactKeys.has(k)),
+    freshness_warnings: payload.freshness_warnings.filter((k) => publicFactKeys.has(k)),
+    open_questions: publicFactKeys.has('decisions.open_questions') ? payload.open_questions : [],
+    topic_candidates: payload.topic_candidates
+      .filter((t) => !t.blocked)
+      .map((t) => ({ topic: t.topic, blocked: false, reason: 'eligible' })),
   };
 }
