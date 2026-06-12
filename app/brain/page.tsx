@@ -39,6 +39,22 @@ const SUGGESTIONS = [
   'What’s missing from the brain right now?',
 ];
 
+const MCP_TOOLS: [string, string][] = [
+  ['brain_ask', 'grounded, cited answer from stored facts'],
+  ['brain_research', 'live web_search → writes new facts back'],
+  ['brain_get_context', 'every fact + a coverage score'],
+  ['brain_get_coverage', 'known vs missing knowledge areas'],
+];
+const MCP_CMD = 'claude mcp add merchant-brain -- node --env-file=/path/to/harness/.env.local --import tsx /path/to/harness/mcp/server.ts';
+const MCP_JSON = `{
+  "mcpServers": {
+    "merchant-brain": {
+      "command": "node",
+      "args": ["--env-file=/path/to/harness/.env.local", "--import", "tsx", "/path/to/harness/mcp/server.ts"]
+    }
+  }
+}`;
+
 const MD: Components = {
   p: ({ children }) => <p className="mb-2 leading-relaxed last:mb-0">{children}</p>,
   strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
@@ -63,7 +79,14 @@ export default function BrainPage() {
   const [learned, setLearned] = useState<Set<string>>(new Set());
   const [cited, setCited] = useState<string | null>(null);
   const [notion, setNotion] = useState<boolean | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
+
+  const copy = (key: string, text: string) => {
+    void navigator.clipboard?.writeText(text);
+    setCopied(key);
+    window.setTimeout(() => setCopied(null), 1500);
+  };
 
   const refreshBrain = async () => {
     try {
@@ -300,6 +323,50 @@ export default function BrainPage() {
             </div>
           </section>
         </div>
+
+        <section className="mt-6 border border-border bg-card">
+          <div className="border-b border-border px-5 py-3 text-sm font-semibold">Connect this brain to your own agent · MCP</div>
+          <div className="grid grid-cols-1 gap-6 px-5 py-4 text-xs lg:grid-cols-[1fr_1fr]">
+            <div className="space-y-3">
+              <p className="leading-relaxed text-muted-foreground">
+                The brain is also a <span className="text-foreground">Model Context Protocol</span> server. Mount it in any
+                MCP client — Claude Code, Claude Desktop, Cursor — and your agent gets these tools:
+              </p>
+              <ul className="space-y-1.5">
+                {MCP_TOOLS.map(([name, desc]) => (
+                  <li key={name} className="flex items-baseline gap-2">
+                    <code className="bg-muted px-1.5 py-0.5 text-[11px] text-foreground">{name}</code>
+                    <span className="text-muted-foreground">{desc}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[10px] leading-relaxed text-muted-foreground">
+                Reuses the same functions as this page — including <span className="text-foreground">brain_research</span>,
+                so a connected agent can tell the brain to go learn.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Claude Code — one command</span>
+                  <button onClick={() => copy('cmd', MCP_CMD)} className="border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-muted">{copied === 'cmd' ? 'copied ✓' : 'copy'}</button>
+                </div>
+                <pre className="overflow-auto whitespace-pre-wrap break-all bg-muted px-3 py-2 text-[11px] leading-relaxed text-foreground">{MCP_CMD}</pre>
+              </div>
+              <details>
+                <summary className="cursor-pointer text-muted-foreground">Claude Desktop / Cursor config (JSON)</summary>
+                <div className="mt-2 flex justify-end">
+                  <button onClick={() => copy('json', MCP_JSON)} className="border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-muted">{copied === 'json' ? 'copied ✓' : 'copy'}</button>
+                </div>
+                <pre className="mt-1 overflow-auto bg-muted px-3 py-2 text-[11px] leading-relaxed text-foreground">{MCP_JSON}</pre>
+              </details>
+              <p className="text-[10px] leading-relaxed text-muted-foreground">
+                Runs locally from the repo + your <code className="bg-muted px-1">.env.local</code>. Replace{' '}
+                <code className="bg-muted px-1">/path/to/harness</code> with your checkout path.
+              </p>
+            </div>
+          </div>
+        </section>
 
         <footer className="mt-8 border-t border-border pt-5 text-xs text-muted-foreground">
           Brainbox v0
