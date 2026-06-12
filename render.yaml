@@ -25,7 +25,7 @@ services:
   - type: web
     name: merchant-brain
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
@@ -34,16 +34,7 @@ services:
         value: "22"
       - key: USE_CACHED_RESEARCH
         value: "1"
-  - type: cron
-    name: merchant-brain-daily
-    runtime: node
-    plan: starter
-    schedule: "0 9 * * *"
-    buildCommand: npm install
-    startCommand: npm run agent:daily -- --merchant gearit
-    envVars:
-      - fromGroup: brain-secrets
-      - key: NODE_VERSION
-        value: "22"
-      - key: USE_CACHED_RESEARCH
-        value: "1"
+# Daily autonomous rerun: Render Cron is a paid-only feature, so it's omitted from
+# the free blueprint. To enable it, add a `type: cron` service on a paid plan running
+# `npm run agent:daily -- --merchant gearit` (scripts/daily-rerun.ts), or trigger that
+# script from any external scheduler.
