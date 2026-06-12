@@ -21,6 +21,8 @@ envVarGroups:
         sync: false
       - key: NOTION_AUTH_CONFIG_ID
         sync: false
+      - key: MCP_TOKEN
+        sync: false
 services:
   - type: web
     name: merchant-brain

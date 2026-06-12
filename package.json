@@ -12,7 +12,8 @@
     "db:setup": "tsx scripts/setup-clickhouse.ts",
     "agent:daily": "tsx scripts/daily-rerun.ts",
     "mcp": "tsx mcp/server.ts",
-    "mcp:smoke": "node --env-file=.env.local --import tsx scripts/mcp-smoke.ts"
+    "mcp:smoke": "node --env-file=.env.local --import tsx scripts/mcp-smoke.ts",
+    "mcp:http-smoke": "node --env-file=.env.local --import tsx scripts/mcp-http-smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
