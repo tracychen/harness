@@ -1,0 +1,6 @@
+{
+  "source": { "source_type": "operator_decision", "source_name": "Ops decision log (sanitized)", "privacy_class": "internal_only", "source_reliability": 1.0 },
+  "observations": [
+    { "fact_key": "catalog.products.cat6_flat.sellable_status", "claim": "Exclude cat6_flat from content this quarter — high return rate", "structured_value": {"status":"excluded"}, "evidence_ref": "ops:2026-Q2:cat6_flat", "directness": "direct", "confidence": 1.0 }
+  ]
+}

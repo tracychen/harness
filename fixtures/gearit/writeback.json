@@ -1,0 +1,7 @@
+{
+  "source": { "source_type": "workflow_artifact", "source_name": "Citation-analysis artifact (pre-made)", "privacy_class": "public_demo_safe", "produced_by_workflow": "citation_analysis", "source_reliability": 0.6 },
+  "observations": [
+    { "fact_key": "blog.proprietary_claim_candidates", "claim": "GEARit Cat6 is pure bare copper (not CCA) — proprietary differentiator", "structured_value": ["pure bare copper conductors, not CCA"], "evidence_ref": "citation:artifact:1", "directness": "derived", "confidence": 0.7 },
+    { "fact_key": "decisions.open_questions", "claim": "Confirm which outdoor SKU to feature", "structured_value": ["Which Cat6 outdoor SKU is the hero for the buying guide?"], "evidence_ref": "citation:artifact:2", "directness": "derived", "confidence": 0.7 }
+  ]
+}

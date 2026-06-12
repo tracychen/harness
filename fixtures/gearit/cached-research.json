@@ -1,0 +1,8 @@
+{
+  "source": { "source_type": "web_research", "source_name": "gearit.com + Amazon live research", "privacy_class": "public_demo_safe", "source_reliability": 0.7 },
+  "observations": [
+    { "fact_key": "identity.display_name", "claim": "GEARit", "structured_value": "GEARit", "evidence_ref": "https://www.gearit.com", "directness": "direct", "confidence": 0.98 },
+    { "fact_key": "catalog.products.cat6_flat.sellable_status", "claim": "Cat6 flat ethernet cable is prominently sold and in stock", "structured_value": {"status":"sellable"}, "evidence_ref": "https://www.amazon.com/GearIT-Patch-Ethernet-Density-Environment/dp/B087BJLVH7", "directness": "direct", "confidence": 0.9 },
+    { "fact_key": "blog.topic_candidates", "claim": "High buyer interest in flat Cat6 cables and outdoor direct-burial", "structured_value": [{"topic":"best flat Cat6 ethernet cables","product":"cat6_flat"},{"topic":"Cat6 outdoor direct-burial buying guide","product":"cat6_outdoor"}], "evidence_ref": "https://www.amazon.com/stores/GEARit", "directness": "inferred", "confidence": 0.8 }
+  ]
+}

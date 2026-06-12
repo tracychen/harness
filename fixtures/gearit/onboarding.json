@@ -1,0 +1,7 @@
+{
+  "source": { "source_type": "onboarding", "source_name": "GEARit onboarding profile", "privacy_class": "public_demo_safe", "source_reliability": 0.85 },
+  "observations": [
+    { "fact_key": "markets.primary_country", "claim": "US", "structured_value": {"country":"US"}, "evidence_ref": "onboarding:markets", "directness": "direct", "confidence": 0.9 },
+    { "fact_key": "catalog.priority_categories", "claim": "Ethernet cables, speaker wire, power cords", "structured_value": ["ethernet","speaker_wire","power"], "evidence_ref": "onboarding:cats", "directness": "direct", "confidence": 0.9 }
+  ]
+}

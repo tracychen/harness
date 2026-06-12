@@ -1,0 +1,6 @@
+{
+  "source": { "source_type": "gmc_snapshot", "source_name": "GEARit GMC snapshot (sanitized)", "privacy_class": "internal_only", "source_reliability": 0.95 },
+  "observations": [
+    { "fact_key": "catalog.products.cat6_flat.sellable_status", "claim": "cat6_flat SKU line marked disapproved / deprioritized this quarter", "structured_value": {"status":"excluded"}, "evidence_ref": "gmc:row:cat6_flat", "directness": "direct", "confidence": 0.95 }
+  ]
+}
