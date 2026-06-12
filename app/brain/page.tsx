@@ -54,6 +54,15 @@ const MCP_JSON = `{
     }
   }
 }`;
+const MCP_HTTP_CMD = 'claude mcp add --transport http merchant-brain https://merchant-brain.onrender.com/api/mcp --header "Authorization: Bearer YOUR_MCP_TOKEN"';
+const MCP_HTTP_JSON = `{
+  "mcpServers": {
+    "merchant-brain": {
+      "url": "https://merchant-brain.onrender.com/api/mcp",
+      "headers": { "Authorization": "Bearer YOUR_MCP_TOKEN" }
+    }
+  }
+}`;
 
 const MD: Components = {
   p: ({ children }) => <p className="mb-2 leading-relaxed last:mb-0">{children}</p>,
@@ -345,25 +354,40 @@ export default function BrainPage() {
                 so a connected agent can tell the brain to go learn.
               </p>
             </div>
-            <div className="min-w-0 space-y-3">
-              <div>
-                <div className="mb-1 flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Claude Code — one command</span>
+            <div className="min-w-0 space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">Local · stdio</span>
                   <button onClick={() => copy('cmd', MCP_CMD)} className="border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-muted">{copied === 'cmd' ? 'copied ✓' : 'copy'}</button>
                 </div>
+                <p className="text-[10px] text-muted-foreground">Claude Code — runs the server from your local checkout + <code className="bg-muted px-1">.env.local</code>:</p>
                 <pre className="overflow-auto whitespace-pre-wrap break-all bg-muted px-3 py-2 text-[11px] leading-relaxed text-foreground">{MCP_CMD}</pre>
+                <details>
+                  <summary className="cursor-pointer text-muted-foreground">Claude Desktop / Cursor config (JSON)</summary>
+                  <div className="mt-2 flex justify-end">
+                    <button onClick={() => copy('json', MCP_JSON)} className="border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-muted">{copied === 'json' ? 'copied ✓' : 'copy'}</button>
+                  </div>
+                  <pre className="mt-1 overflow-auto bg-muted px-3 py-2 text-[11px] leading-relaxed text-foreground">{MCP_JSON}</pre>
+                </details>
+                <p className="text-[10px] leading-relaxed text-muted-foreground">Replace <code className="bg-muted px-1">/path/to/harness</code> with your checkout path.</p>
               </div>
-              <details>
-                <summary className="cursor-pointer text-muted-foreground">Claude Desktop / Cursor config (JSON)</summary>
-                <div className="mt-2 flex justify-end">
-                  <button onClick={() => copy('json', MCP_JSON)} className="border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-muted">{copied === 'json' ? 'copied ✓' : 'copy'}</button>
+
+              <div className="space-y-2 border-t border-border pt-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">Hosted · HTTP</span>
+                  <button onClick={() => copy('httpcmd', MCP_HTTP_CMD)} className="border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-muted">{copied === 'httpcmd' ? 'copied ✓' : 'copy'}</button>
                 </div>
-                <pre className="mt-1 overflow-auto bg-muted px-3 py-2 text-[11px] leading-relaxed text-foreground">{MCP_JSON}</pre>
-              </details>
-              <p className="text-[10px] leading-relaxed text-muted-foreground">
-                Runs locally from the repo + your <code className="bg-muted px-1">.env.local</code>. Replace{' '}
-                <code className="bg-muted px-1">/path/to/harness</code> with your checkout path.
-              </p>
+                <p className="text-[10px] text-muted-foreground">Claude Code — no clone needed; connects to the deployed endpoint with a bearer token:</p>
+                <pre className="overflow-auto whitespace-pre-wrap break-all bg-muted px-3 py-2 text-[11px] leading-relaxed text-foreground">{MCP_HTTP_CMD}</pre>
+                <details>
+                  <summary className="cursor-pointer text-muted-foreground">Claude Desktop / Cursor config (JSON)</summary>
+                  <div className="mt-2 flex justify-end">
+                    <button onClick={() => copy('httpjson', MCP_HTTP_JSON)} className="border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-muted">{copied === 'httpjson' ? 'copied ✓' : 'copy'}</button>
+                  </div>
+                  <pre className="mt-1 overflow-auto bg-muted px-3 py-2 text-[11px] leading-relaxed text-foreground">{MCP_HTTP_JSON}</pre>
+                </details>
+                <p className="text-[10px] leading-relaxed text-muted-foreground">Replace <code className="bg-muted px-1">YOUR_MCP_TOKEN</code> with the deploy’s <code className="bg-muted px-1">MCP_TOKEN</code>.</p>
+              </div>
             </div>
           </div>
         </section>
