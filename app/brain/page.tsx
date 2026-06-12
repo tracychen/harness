@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown, { type Components } from 'react-markdown';
+import { computeCoverage } from '@/lib/brain/coverage';
 
 type Fact = { fact_key: string; value: string; min_privacy: string; freshness_status: string; confidence: number; source_refs: string[] };
 type Msg = { role: 'you' | 'brain' | 'note'; text: string };
@@ -24,11 +26,25 @@ const SUGGESTIONS = [
   'What’s missing from the brain right now?',
 ];
 
+const MD: Components = {
+  p: ({ children }) => <p className="mb-2 leading-relaxed last:mb-0">{children}</p>,
+  strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+  em: ({ children }) => <em className="italic">{children}</em>,
+  ul: ({ children }) => <ul className="mb-2 ml-4 list-disc space-y-0.5 last:mb-0">{children}</ul>,
+  ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal space-y-0.5 last:mb-0">{children}</ol>,
+  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  a: ({ href, children }) => <a href={href} target="_blank" rel="noreferrer" className="text-emerald-600 underline underline-offset-2">{children}</a>,
+  code: ({ children }) => <code className="bg-muted px-1 text-[0.85em]">{children}</code>,
+  h1: ({ children }) => <div className="mb-1 mt-2 font-semibold first:mt-0">{children}</div>,
+  h2: ({ children }) => <div className="mb-1 mt-2 font-semibold first:mt-0">{children}</div>,
+  h3: ({ children }) => <div className="mb-1 mt-2 font-semibold first:mt-0">{children}</div>,
+};
+
 export default function BrainPage() {
   const [merchant] = useState('gearit');
   const [input, setInput] = useState('');
   const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [busy, setBusy] = useState<'ask' | 'research' | 'publish' | null>(null);
+  const [busy, setBusy] = useState<'ask' | 'research' | 'publish' | 'seed' | null>(null);
   const [facts, setFacts] = useState<Fact[]>([]);
   const [version, setVersion] = useState<string | null>(null);
   const [learned, setLearned] = useState<Set<string>>(new Set());
@@ -55,7 +71,8 @@ export default function BrainPage() {
     setBusy(mode);
     if (mode === 'research') setMsgs((m) => [...m, { role: 'note', text: '🔎 Researching the open web and writing what it finds back into the brain…' }]);
     try {
-      const r = await api.post('/api/brain/chat', { merchant, message, mode });
+      const history = msgs.filter((x) => x.role !== 'note').map((x) => ({ role: x.role === 'you' ? 'user' : 'assistant', content: x.text })).slice(-12);
+      const r = await api.post('/api/brain/chat', { merchant, message, mode, history });
       if (mode === 'research') {
         const keys: string[] = r.learned ?? [];
         setLearned(new Set(keys));
@@ -65,6 +82,21 @@ export default function BrainPage() {
       setMsgs((m) => [...m, { role: 'brain', text: r.answer ?? r.error ?? '(no answer)' }]);
     } catch (e) {
       setMsgs((m) => [...m, { role: 'brain', text: `Error: ${(e as Error).message}` }]);
+    } finally { setBusy(null); }
+  };
+
+  const seed = async () => {
+    if (busy) return;
+    setBusy('seed');
+    setMsgs((m) => [...m, { role: 'note', text: '🌱 Seeding the brain — researching the open web and ingesting ground-truth sources, then synthesizing…' }]);
+    try {
+      const r = await api.post('/api/brain/run', { merchant, mode: 'run' });
+      const keys: string[] = r.changedKeys ?? [];
+      setLearned(new Set(keys));
+      await refreshBrain();
+      setMsgs((m) => [...m, { role: 'note', text: `✅ Brain seeded — ${keys.length} fact(s) synthesized${r.brain_version_id ? ` · v${String(r.brain_version_id).slice(0, 8)}` : ''}.` }]);
+    } catch (e) {
+      setMsgs((m) => [...m, { role: 'note', text: `Seed error: ${(e as Error).message}` }]);
     } finally { setBusy(null); }
   };
 
@@ -83,15 +115,17 @@ export default function BrainPage() {
   };
 
   const sections = Array.from(new Set(facts.map((f) => f.fact_key.split('.')[0])));
+  const coverage = computeCoverage(facts.map((f) => f.fact_key));
+  const avgConf = facts.length ? facts.reduce((s, f) => s + f.confidence, 0) / facts.length : 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-6xl px-6 py-9">
         <header className="border-b border-border pb-6">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            <span className="inline-block h-2 w-2 bg-primary" /> Merchant Brain · Context Engineering
+            <span className="inline-block h-2 w-2 bg-primary" /> Brainbox · Harness Engineering Hack
           </div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">The GEARit Merchant Brain</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight">The GEARit Brainbox</h1>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
             Chat with a <span className="text-foreground">grounded knowledge base</span> that answers only from stored,
             cited facts. When it hits a gap, it <span className="text-foreground">researches the open web</span>, writes
@@ -128,14 +162,20 @@ export default function BrainPage() {
                   <div key={i} className="text-xs italic text-muted-foreground">{m.text}</div>
                 ) : (
                   <div key={i} className={m.role === 'you' ? 'flex justify-end' : 'flex justify-start'}>
-                    <div className={`max-w-[85%] whitespace-pre-wrap px-3 py-2 text-sm ${m.role === 'you' ? 'bg-primary text-primary-foreground' : 'border border-border bg-background'}`}>
-                      {m.role === 'brain' && <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">brain</div>}
-                      {m.text}
+                    <div className={`max-w-[85%] px-3 py-2 text-sm ${m.role === 'you' ? 'whitespace-pre-wrap bg-primary text-primary-foreground' : 'border border-border bg-background'}`}>
+                      {m.role === 'brain' ? (
+                        <>
+                          <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">brain</div>
+                          <ReactMarkdown components={MD}>{m.text}</ReactMarkdown>
+                        </>
+                      ) : (
+                        m.text
+                      )}
                     </div>
                   </div>
                 ),
               )}
-              {busy && busy !== 'publish' && <div className="text-xs italic text-muted-foreground">{busy === 'research' ? 'searching the web…' : 'thinking…'}</div>}
+              {(busy === 'ask' || busy === 'research') && <div className="text-xs italic text-muted-foreground">{busy === 'research' ? 'searching the web…' : 'thinking…'}</div>}
             </div>
 
             <div className="border-t border-border p-3">
@@ -162,12 +202,47 @@ export default function BrainPage() {
           <section className="flex h-[36rem] flex-col border border-border bg-card">
             <div className="flex items-center justify-between border-b border-border px-5 py-3">
               <span className="text-sm font-semibold">Knowledge base</span>
-              <span className="text-xs text-muted-foreground">{facts.length} facts{version ? ` · v${version.slice(0, 8)}` : ''}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">{facts.length} facts{version ? ` · v${version.slice(0, 8)}` : ''}</span>
+                <button onClick={seed} disabled={!!busy}
+                  className="border border-border bg-background px-2 py-1 text-[11px] font-medium hover:bg-muted disabled:opacity-40">
+                  {busy === 'seed' ? 'Seeding…' : facts.length === 0 ? '🌱 Seed' : '↻ Reseed'}
+                </button>
+              </div>
+            </div>
+
+            <div className="border-b border-border px-5 py-3">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Brain coverage</span>
+                <span className="text-xs text-muted-foreground">
+                  <span className="text-sm font-semibold text-foreground">{coverage.known}</span> / {coverage.total} areas
+                  {avgConf > 0 && <> · {Math.round(avgConf * 100)}% avg conf</>}
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 w-full overflow-hidden bg-muted">
+                <div className="h-full bg-primary transition-all duration-500" style={{ width: `${(coverage.known / coverage.total) * 100}%` }} />
+              </div>
+              {coverage.missing.length > 0 ? (
+                <div className="mt-2 flex flex-wrap items-center gap-1">
+                  <span className="text-[10px] text-muted-foreground">gaps to fill:</span>
+                  {coverage.targets.filter((t) => !t.covered).map((t) => (
+                    <span key={t.id} className="border border-dashed border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">{t.label}</span>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 text-[10px] text-emerald-600">All {coverage.total} core areas covered.</div>
+              )}
             </div>
 
             <div className="flex-1 space-y-4 overflow-auto px-5 py-4">
               {facts.length === 0 ? (
-                <p className="text-xs text-muted-foreground">The brain is empty. Ask a question, then hit <span className="text-foreground">Research the web &amp; learn</span> to teach it.</p>
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">The brain is empty. Seed it from the open web to get started, or ask a question and hit <span className="text-foreground">Research the web &amp; learn</span> to teach it.</p>
+                  <button onClick={seed} disabled={!!busy}
+                    className="w-full border border-primary/40 bg-primary/5 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-40">
+                    {busy === 'seed' ? '🌱 Seeding the brain…' : '🌱 Seed the brain from the web'}
+                  </button>
+                </div>
               ) : (
                 sections.map((sec) => (
                   <div key={sec}>
@@ -205,8 +280,7 @@ export default function BrainPage() {
         </div>
 
         <footer className="mt-8 border-t border-border pt-5 text-xs text-muted-foreground">
-          Every answer is grounded in stored, cited, freshness-tracked facts — and internal facts never reach the public web.
-          Merchant Brain v0
+          Brainbox v0
         </footer>
       </div>
     </div>

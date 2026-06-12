@@ -9,7 +9,7 @@ export function bundleToMarkdown(b: ContextBundle): string {
   const facts = p.facts.map((f) => `- **${f.fact_key}**: ${f.value} _(confidence ${f.confidence})_`).join('\n');
   const topics = p.topic_candidates.filter((t) => !t.blocked).map((t) => `- ${t.topic}`).join('\n');
   return [
-    `# GEARit — Merchant Brain Summary`,
+    `# GEARit — Brainbox Summary`,
     `## Recommended blog topics`, topics || '_none_',
     `## Cited facts`, facts || '_none_',
   ].join('\n\n');
@@ -20,7 +20,7 @@ export async function publishCited(b: ContextBundle): Promise<string> {
   const markdown = bundleToMarkdown(b);
   const data = JSON.stringify({
     geo_question_id: process.env.SENSO_GEO_QUESTION_ID,
-    raw_markdown: markdown, seo_title: 'GEARit Merchant Brain Summary',
+    raw_markdown: markdown, seo_title: 'GEARit Brainbox Summary',
     summary: 'Cited, conflict-checked merchant context (public-safe).',
   });
   const { stdout } = await exec('npx', ['@senso-ai/cli', 'engine', 'publish', '--data', data, '--output', 'json', '--quiet'], {

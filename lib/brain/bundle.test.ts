@@ -22,6 +22,12 @@ describe('bundle', () => {
     expect(ok?.blocked).toBe(false);
   });
 
+  it('reports uncovered target fact_keys as gaps', () => {
+    const b = composeBlogBundle([fact('identity.display_name', 'GEARit')]);
+    expect(b.gaps).toContain('markets.primary_country');
+    expect(b.gaps).not.toContain('identity.display_name');
+  });
+
   it('publishSafe drops non-public facts', () => {
     const b = composeBlogBundle([
       fact('identity.display_name', 'GEARit', 'public_demo_safe'),

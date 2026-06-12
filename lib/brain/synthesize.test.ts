@@ -33,6 +33,38 @@ describe('synthesizeFact', () => {
     expect(fact.canonical_confidence).toBeLessThanOrEqual(0.6);
   });
 
+  it('two independent corroborating direct sources raise confidence above either alone', () => {
+    const { fact } = synthesizeFact(null, [
+      obs('a', 'sellable', 'public_demo_safe', 'direct', 0.9),
+      obs('b', 'sellable', 'public_demo_safe', 'direct', 0.9),
+    ], { fact_key: FK, section: 'catalog', brain_version_id: 'bv', now: '2026-06-12 11:00:00.000' });
+    expect(fact.freshness_status).toBe('fresh');
+    expect(fact.canonical_confidence).toBeGreaterThan(0.9);
+    expect(fact.canonical_confidence).toBeLessThanOrEqual(0.99);
+  });
+
+  it('a single source is not treated as corroborated', () => {
+    const { fact } = synthesizeFact(null, [obs('a', 'sellable', 'public_demo_safe', 'direct', 0.9)],
+      { fact_key: FK, section: 'catalog', brain_version_id: 'bv', now: '2026-06-12 11:00:00.000' });
+    expect(fact.canonical_confidence).toBe(0.9);
+  });
+
+  it('decisions.open_questions takes the most recent value (latest-wins, never conflicted)', () => {
+    const OQ = 'decisions.open_questions';
+    const oq = (id: string, arr: string[], when: string): Observation => ({
+      merchant_id: 'gearit', observation_id: id, source_id: 's_' + id, fact_key: OQ,
+      observation_type: 'decisions', claim: arr.join('; '), structured_value: JSON.stringify(arr),
+      extraction_confidence: 0.7, directness: 'derived', evidence_ref: 'agent:open_questions',
+      privacy_class: 'public_demo_safe', observed_at: when, extraction_method: 'llm', review_status: 'auto_accepted',
+    });
+    const { fact } = synthesizeFact(null, [
+      oq('old', ['Which outdoor SKU is the hero?'], '2026-06-12 10:00:00.000'),
+      oq('new', ['What proprietary claim wins citations?'], '2026-06-12 12:00:00.000'),
+    ], { fact_key: OQ, section: 'decisions', brain_version_id: 'bv', now: '2026-06-12 12:30:00.000' });
+    expect(fact.freshness_status).toBe('fresh');
+    expect(JSON.parse(fact.canonical_value)).toEqual(['What proprietary claim wins citations?']);
+  });
+
   it('operator_locked fact is not overwritten', () => {
     const locked: CanonicalFact = {
       merchant_id: 'gearit', fact_key: FK, section: 'catalog', canonical_value: JSON.stringify({ status: 'excluded' }),

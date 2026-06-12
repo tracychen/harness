@@ -1,5 +1,6 @@
 import type { BundleFact, BundlePayload, CanonicalFact, SellableStatus } from './types';
 import { isDemoSafe } from './types';
+import { computeCoverage } from './coverage';
 
 const BLOCKED_STATUS: SellableStatus[] = ['excluded', 'eol', 'low_stock'];
 
@@ -27,7 +28,7 @@ export function composeBlogBundle(facts: CanonicalFact[]): BundlePayload {
 
   return {
     facts: facts.map(toBundleFact),
-    gaps: facts.filter((f) => f.freshness_status === 'missing').map((f) => f.fact_key),
+    gaps: computeCoverage(facts.map((f) => f.fact_key)).missing,
     freshness_warnings: facts.filter((f) => f.freshness_status === 'stale').map((f) => f.fact_key),
     conflicts: facts.filter((f) => f.freshness_status === 'conflicted').map((f) => f.fact_key),
     locked_decisions: facts.filter((f) => f.operator_locked).map((f) => `${f.fact_key}=${f.canonical_value}`),
@@ -51,7 +52,7 @@ export function publishSafe(payload: BundlePayload): BundlePayload {
     facts: publicFacts,
     locked_decisions: [], // internal by nature — never publish
     conflicts: [], // a conflict reveals an internal/external disagreement — never publish
-    gaps: payload.gaps.filter((k) => publicFactKeys.has(k)),
+    gaps: [], // the brain's blind spots are internal — never broadcast publicly
     freshness_warnings: payload.freshness_warnings.filter((k) => publicFactKeys.has(k)),
     open_questions: publicFactKeys.has('decisions.open_questions') ? payload.open_questions : [],
     topic_candidates: payload.topic_candidates

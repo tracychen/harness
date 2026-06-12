@@ -5,6 +5,11 @@ import { detectConflict } from './conflict';
 export interface SynthOpts { fact_key: string; section: string; brain_version_id: string; now: string; }
 export interface SynthResult { fact: CanonicalFact; changed: boolean; }
 
+// Mutable agenda lists: the latest observation replaces the prior one rather than
+// corroborating or conflicting with it. Differing snapshots of the same evolving
+// list are not a disagreement to flag.
+const LATEST_WINS_KEYS = new Set(['decisions.open_questions']);
+
 function privacyOf(obs: Observation[]): CanonicalFact['min_privacy'] {
   return obs.reduce<CanonicalFact['min_privacy']>((acc, o) => mostRestrictive(acc, o.privacy_class), 'public_demo_safe');
 }
@@ -12,7 +17,11 @@ function privacyOf(obs: Observation[]): CanonicalFact['min_privacy'] {
 export function synthesizeFact(current: CanonicalFact | null, incoming: Observation[], opts: SynthOpts): SynthResult {
   if (current?.operator_locked) return { fact: current, changed: false };
 
-  const all = incoming;
+  // For agenda keys, only the most recent observation counts — collapse to it so the
+  // value updates cleanly instead of conflicting with prior snapshots.
+  const all = LATEST_WINS_KEYS.has(opts.fact_key)
+    ? [[...incoming].sort((a, b) => (a.observed_at < b.observed_at ? 1 : -1))[0]]
+    : incoming;
   const conflict = detectConflict(all);
   const min_privacy = privacyOf(all);
 
@@ -22,7 +31,15 @@ export function synthesizeFact(current: CanonicalFact | null, incoming: Observat
   const nonDerivedMax = Math.max(0, ...all.filter((o) => o.directness !== 'derived').map((o) => o.extraction_confidence));
 
   // Lineage guardrail: derived-only evidence cannot exceed current confidence.
-  const proposedConf = nonDerivedMax > 0 ? nonDerivedMax : Math.min(current?.canonical_confidence ?? 0, winner?.extraction_confidence ?? 0);
+  let proposedConf = nonDerivedMax > 0 ? nonDerivedMax : Math.min(current?.canonical_confidence ?? 0, winner?.extraction_confidence ?? 0);
+
+  // Corroboration: when the value isn't conflicted and ≥2 independent non-derived
+  // sources agree, raise confidence above any single source (capped). This is what
+  // makes repeated research strengthen a known fact, not just add new ones.
+  const independentSources = new Set(all.filter((o) => o.directness !== 'derived').map((o) => o.source_id)).size;
+  if (!conflict.conflicted && nonDerivedMax > 0 && independentSources >= 2) {
+    proposedConf = Math.min(0.99, nonDerivedMax + 0.05 * (independentSources - 1));
+  }
 
   const fact: CanonicalFact = {
     merchant_id: winner?.merchant_id ?? current!.merchant_id,
