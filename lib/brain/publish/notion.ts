@@ -15,5 +15,6 @@ export async function pushBundleToNotion(b: ContextBundle): Promise<unknown> {
   return composio.tools.execute('NOTION_CREATE_NOTION_PAGE', {
     userId,
     arguments: { parent_id: process.env.NOTION_PARENT_PAGE_ID, title: `GEARit blog_source_material — review`, content },
+    dangerouslySkipVersionCheck: true, // manual execute rejects "latest" without this
   });
 }
