@@ -15,8 +15,17 @@ const api = {
 };
 
 const shortKey = (k: string) => k.replace(/^catalog\.products\./, '').replace(/\.sellable_status$/, '');
+const readable = (val: unknown): string => {
+  if (val == null) return '';
+  if (typeof val !== 'object') return String(val);
+  if (Array.isArray(val)) return val.map(readable).filter(Boolean).join(', ');
+  const o = val as Record<string, unknown>;
+  if (typeof o.status === 'string') return o.status;
+  if (typeof o.topic === 'string') return o.topic;
+  return Object.entries(o).map(([k, v]) => `${k}: ${readable(v)}`).join(' · ');
+};
 const parseVal = (v: string) => {
-  try { const o = JSON.parse(v); return o?.status ?? (Array.isArray(o) ? o.join(', ') : typeof o === 'object' ? Object.values(o).join(', ') : String(o)); }
+  try { return readable(JSON.parse(v)); }
   catch { return v; }
 };
 
