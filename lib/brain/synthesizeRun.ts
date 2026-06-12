@@ -9,14 +9,16 @@ type CanonicalFactRow = Omit<CanonicalFact, 'operator_locked'> & { operator_lock
 
 async function loadCurrent(merchantId: string): Promise<Map<string, CanonicalFact>> {
   const rows = await query<CanonicalFactRow>(
-    `SELECT * FROM canonical_facts FINAL WHERE merchant_id='${merchantId}'`);
+    `SELECT * FROM canonical_facts FINAL WHERE merchant_id={merchant_id:String}`,
+    { merchant_id: merchantId });
   return new Map(rows.map((r) => [r.fact_key, { ...r, operator_locked: !!r.operator_locked } as CanonicalFact]));
 }
 
 /** Recompute canonical facts for every fact_key touched by the merchant's observations. */
 export async function synthesizeRun(merchantId: string, trigger: BrainVersion['trigger'], nowIso: string): Promise<{ brain_version_id: string; changedKeys: string[] }> {
   const brain_version_id = randomUUID();
-  const obs = await query<Observation>(`SELECT * FROM observations WHERE merchant_id='${merchantId}'`);
+  const obs = await query<Observation>(
+    `SELECT * FROM observations WHERE merchant_id={merchant_id:String}`, { merchant_id: merchantId });
   const current = await loadCurrent(merchantId);
 
   const byKey = new Map<string, Observation[]>();

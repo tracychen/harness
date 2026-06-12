@@ -17,7 +17,7 @@ export async function insertRows<T>(table: string, rows: T[]): Promise<void> {
   await ch().insert({ table, values: rows, format: 'JSONEachRow' });
 }
 
-export async function query<T>(sql: string): Promise<T[]> {
-  const rs = await ch().query({ query: sql, format: 'JSONEachRow' });
+export async function query<T>(sql: string, params?: Record<string, unknown>): Promise<T[]> {
+  const rs = await ch().query({ query: sql, query_params: params, format: 'JSONEachRow' });
   return rs.json<T>();
 }

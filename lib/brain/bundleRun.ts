@@ -7,7 +7,8 @@ type CanonicalFactRow = Omit<CanonicalFact, 'operator_locked'> & { operator_lock
 
 export async function buildBlogBundle(merchantId: string, brainVersionId: string, nowIso: string): Promise<ContextBundle> {
   const rows = await query<CanonicalFactRow>(
-    `SELECT * FROM canonical_facts FINAL WHERE merchant_id='${merchantId}'`);
+    `SELECT * FROM canonical_facts FINAL WHERE merchant_id={merchant_id:String}`,
+    { merchant_id: merchantId });
   const facts = rows.map((r) => ({ ...r, operator_locked: !!r.operator_locked } as CanonicalFact));
   const payload = composeBlogBundle(facts);
   const published_payload = publishSafe(payload);

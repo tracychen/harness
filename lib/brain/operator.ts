@@ -13,7 +13,8 @@ export async function resolveAndLock(merchantId: string, factKey: string, chosen
   await insertRows('operator_decisions', [{ ...decision, locked: 1 }]);
 
   const [cur] = await query<CanonicalFactRow>(
-    `SELECT * FROM canonical_facts FINAL WHERE merchant_id='${merchantId}' AND fact_key='${factKey}' LIMIT 1`);
+    `SELECT * FROM canonical_facts FINAL WHERE merchant_id={merchant_id:String} AND fact_key={fact_key:String} LIMIT 1`,
+    { merchant_id: merchantId, fact_key: factKey });
   const locked: CanonicalFact = {
     ...(cur as unknown as CanonicalFact),
     merchant_id: merchantId, fact_key: factKey, section: factKey.split('.')[0],
