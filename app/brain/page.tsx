@@ -345,7 +345,7 @@ export default function BrainPage() {
                 so a connected agent can tell the brain to go learn.
               </p>
             </div>
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3">
               <div>
                 <div className="mb-1 flex items-center justify-between">
                   <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Claude Code — one command</span>
