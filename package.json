@@ -6,10 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:setup": "tsx scripts/setup-clickhouse.ts",
+    "agent:daily": "tsx scripts/daily-rerun.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
+    "@clickhouse/client": "^1.20.0",
+    "@composio/core": "^0.10.0",
     "@phosphor-icons/react": "^2.1.10",
+    "@senso-ai/cli": "^0.11.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.18.0",
@@ -26,9 +34,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.8",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.22.4",
+    "typescript": "^5",
+    "vitest": "^4.1.8"
   }
 }
