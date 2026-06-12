@@ -6,7 +6,7 @@ import ReactMarkdown, { type Components } from 'react-markdown';
 import { computeCoverage } from '@/lib/brain/coverage';
 
 type Fact = { fact_key: string; value: string; min_privacy: string; freshness_status: string; confidence: number; source_refs: string[] };
-type Msg = { role: 'you' | 'brain' | 'note'; text: string };
+type Msg = { role: 'you' | 'brain' | 'note'; text: string; factKeys?: string[] };
 
 const api = {
   post: async (url: string, body: unknown) =>
@@ -15,6 +15,9 @@ const api = {
 };
 
 const shortKey = (k: string) => k.replace(/^catalog\.products\./, '').replace(/\.sellable_status$/, '');
+// Remove the model's inline [fact_key] / [a.b, c.d] citations from the prose; we render
+// them as chips instead. Requires a dotted key and skips markdown links ([text](url)).
+const stripCitations = (t: string) => t.replace(/\s*\[[a-z][a-z0-9_]*(?:\.[a-z0-9_]+)+(?:\s*,\s*[a-z][a-z0-9_]*(?:\.[a-z0-9_]+)+)*\](?!\()/gi, '').trim();
 const readable = (val: unknown): string => {
   if (val == null) return '';
   if (typeof val !== 'object') return String(val);
@@ -89,7 +92,7 @@ export default function BrainPage() {
         setMsgs((m) => [...m, { role: 'note', text: `✅ ${r.researchSummary ?? 'Done.'}${keys.length ? ' · ' + keys.map(shortKey).join(', ') : ''}` }]);
         await refreshBrain();
       }
-      setMsgs((m) => [...m, { role: 'brain', text: r.answer ?? r.error ?? '(no answer)' }]);
+      setMsgs((m) => [...m, { role: 'brain', text: stripCitations(r.answer ?? r.error ?? '(no answer)'), factKeys: r.factKeys }]);
     } catch (e) {
       setMsgs((m) => [...m, { role: 'brain', text: `Error: ${(e as Error).message}` }]);
     } finally { setBusy(null); }
@@ -178,6 +181,14 @@ export default function BrainPage() {
                         <>
                           <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">brain</div>
                           <ReactMarkdown components={MD}>{m.text}</ReactMarkdown>
+                          {m.factKeys && m.factKeys.length > 0 && (
+                            <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-border/60 pt-2">
+                              <span className="text-[9px] uppercase tracking-wide text-muted-foreground">cited</span>
+                              {m.factKeys.map((k) => (
+                                <span key={k} className="bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{k}</span>
+                              ))}
+                            </div>
+                          )}
                         </>
                       ) : (
                         m.text
