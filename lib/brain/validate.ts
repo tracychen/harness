@@ -13,3 +13,16 @@ export function assertFactKey(value: string): string {
   if (!FACT_KEY_RE.test(value)) throw new Error(`invalid fact_key: ${JSON.stringify(value)}`);
   return value;
 }
+
+// Research targets are resolved from a server-side per-merchant allow-list, never
+// from request input — this is the SSRF-safe alternative to accepting a `domain`
+// from the client (the live web fetch happens inside Anthropic's web_search tool).
+const MERCHANT_DOMAINS: Record<string, string> = {
+  gearit: 'https://www.gearit.com',
+};
+
+export function resolveMerchantDomain(merchantId: string): string {
+  const domain = MERCHANT_DOMAINS[merchantId];
+  if (!domain) throw new Error(`no configured research domain for merchant: ${merchantId}`);
+  return domain;
+}
