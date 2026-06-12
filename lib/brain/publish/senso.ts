@@ -26,5 +26,15 @@ export async function publishCited(b: ContextBundle): Promise<string> {
   const { stdout } = await exec('npx', ['@senso-ai/cli', 'engine', 'publish', '--data', data, '--output', 'json', '--quiet'], {
     env: { ...process.env }, maxBuffer: 1024 * 1024,
   });
-  try { return JSON.parse(stdout).url ?? stdout.trim(); } catch { return stdout.trim(); }
+  // The CLI may print a human line (e.g. "✓ Content published.") before the JSON.
+  const json = stdout.match(/\{[\s\S]*\}/);
+  if (json) {
+    try {
+      const r = JSON.parse(json[0]);
+      return r.publish_destinations?.[0]?.display_url
+        ?? r.display_url
+        ?? (r.content_id ? `https://cited.md/article/${r.content_id}` : stdout.trim());
+    } catch { /* fall through to raw output */ }
+  }
+  return stdout.trim();
 }
